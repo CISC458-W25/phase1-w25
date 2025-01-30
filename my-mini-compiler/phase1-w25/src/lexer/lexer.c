@@ -32,6 +32,15 @@ void print_error(ErrorType error, int line, const char *lexeme) {
  *  TODO Update your printing function accordingly
  */
 
+int ispunctuation(char c){
+    if (c == '{' || c == '}' || c == ',' || c == '(' || c == ')' || c == ';'){
+        return 1;
+    }
+    else{
+        return 0;
+    };
+}
+
 void print_token(Token token) {
     if (token.error != ERROR_NONE) {
         print_error(token.error, token.line, token.lexeme);
@@ -48,6 +57,9 @@ void print_token(Token token) {
             break;
         case TOKEN_EOF:
             printf("EOF");
+            break;
+        case TOKEN_PUNCTUATION:
+            printf("PUCTUATION");
             break;
         default:
             printf("UNKNOWN");
@@ -103,10 +115,6 @@ Token get_next_token(const char *input, int *pos) {
         if (last_token_type == 'o') {
             // Check for consecutive operators
             token.error = ERROR_CONSECUTIVE_OPERATORS;
-            token.lexeme[0] = c;
-            token.lexeme[1] = '\0';
-            (*pos)++;
-            return token;
         }
         token.type = TOKEN_OPERATOR;
         token.lexeme[0] = c;
@@ -117,6 +125,14 @@ Token get_next_token(const char *input, int *pos) {
     }
 
     // TODO: Add delimiter handling here
+    // Handle punctuation
+    if(ispunctuation(c)){
+        token.type = TOKEN_PUNCTUATION;
+        token.lexeme[0] = c;
+        token.lexeme[1] = '\0';
+        (*pos)++;
+        return token;
+    }
 
     // Handle invalid characters
     token.error = ERROR_INVALID_CHAR;
@@ -128,15 +144,43 @@ Token get_next_token(const char *input, int *pos) {
 
 // This is a basic lexer that handles numbers (e.g., "123", "456"), basic operators (+ and -), consecutive operator errors, whitespace and newlines, with simple line tracking for error reporting.
 
-int main() {
-    const char *input = "123 + 456 - 789\n1 ++ 2"; // Test with multi-line input
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Must pass exactly one file to parse\n");
+        return 1;
+    }
+
+    char *input_buffer;
+    long file_size;
+    FILE *fp;
+
+    fp = fopen(argv[1], "r");
+    if (!fp) {
+        fprintf(stderr, "Invalid file path: %s\n", argv[1]);
+        return 1;
+    } 
+    
+    fseek(fp, 0L, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+
+    input_buffer = (char *)malloc(file_size * sizeof(char) + 1);
+    size_t bytes_read = fread(input_buffer, 1, file_size, fp);
+
+    if (bytes_read != file_size) {
+        fprintf(stderr, "Could not read the whole file\n");
+        free(input_buffer);
+        fclose(fp);
+        return 1;
+    }
+
     int position = 0;
     Token token;
 
-    printf("Analyzing input:\n%s\n\n", input);
+    printf("Analyzing input:\n%s\n\n", input_buffer);
 
     do {
-        token = get_next_token(input, &position);
+        token = get_next_token(input_buffer, &position);
         print_token(token);
     } while (token.type != TOKEN_EOF);
 

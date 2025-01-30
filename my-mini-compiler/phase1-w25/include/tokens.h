@@ -5,7 +5,7 @@
 /* tokens.h */
 #ifndef TOKENS_H
 #define TOKENS_H
-
+#define TOKEN_COUNT 7 
 /* Token types that need to be recognized by the lexer
  * TODO: Add more token types as per requirements:
  * - Keywords or reserved words (if, repeat, until)
@@ -14,10 +14,12 @@
  * - More operators
  * - Delimiters
  */
+
 typedef enum {
     TOKEN_EOF,
     TOKEN_NUMBER,     // e.g., "123", "456"
     TOKEN_OPERATOR,   // e.g., "+", "-"
+    TOKEN_PUNCTUATION,   // e.g., "{", "}", ",", ".", "(", ")"
     TOKEN_ERROR
 } TokenType;
 
@@ -42,5 +44,6 @@ typedef struct {
     int line;           // Line number in source file
     ErrorType error;    // Error type if any
 } Token;
+
 
 #endif /* TOKENS_H */
